@@ -1,5 +1,3 @@
-import kotlin.collections.SetsKt;
-
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -10,6 +8,7 @@ public class CrossAndCircle {
 
     private String[] moves;
     private int[][] winsCombination;
+    private HashSet<Integer> possibleSetMoves = Stream.of(1,2,3,4,5,6,7,8,9).collect(Collectors.toCollection(HashSet::new));
     private int lastHumMove = 0, lastComMove = 0;
     private Scanner sc;
     private int round;
@@ -17,7 +16,7 @@ public class CrossAndCircle {
     private boolean showNumberFields = true;
     private String humanFigure = "X";
     private String compFigure = "O";
-    private Set<Integer> humanFields;
+    private Set<Integer> humanSetMoves;
 
 
     //---------------MENU-------------------------------------
@@ -98,7 +97,7 @@ public class CrossAndCircle {
                     System.exit(0);
                     break;
                 case "1":
-                    play();
+                    startGame();
                     break;
                 case "2":
                     selectSetting();
@@ -254,15 +253,15 @@ public class CrossAndCircle {
         System.out.printf("%3s", "\nWrite number of field, where you place " + humanFigure + " : ");
     }
 
-    private void play() {
+    private void startGame() {
         winsCombination = new int[][]{{1, 2, 3},{1, 4, 7}, {1, 5, 9}, {2, 5, 8},  {3, 6, 9}, {3, 5, 7}, {4, 5, 6}, {7, 8, 9}};
         round = 1;
-        humanFields = new HashSet<>();
+        humanSetMoves = new HashSet<>();
         buildMoves();
         while (!isWin(lastHumMove,humanFigure)) {
             drawBoard();
-            getMove();
-            if(round == 5 ){
+            play();
+            if(possibleSetMoves.isEmpty()){
                 drawBoard();
                 System.out.println("\n-------------");
                 System.out.printf("|%3s|", " IT'S DRAW ");
@@ -273,32 +272,42 @@ public class CrossAndCircle {
     }
 
     private boolean isMove(int field) {
-        return (moves[field].equals("X") || moves[field].equals("O"));
+        return !possibleSetMoves.contains(field) ;
     }
 
-    private void getMove() {
+
+
+    private void play() {
         drawMoveMenu();
         try {
             sc = new Scanner(System.in);
             lastHumMove = sc.nextInt();
             if (isMove(lastHumMove)) {
                 System.out.printf("%3s", "That field is occupied! Select different field.\n");
-                getMove();
+                play();
             } else {
-                moves[lastHumMove] = humanFigure;
-                humanFields.add(lastHumMove);
+                // in there give switch (humanfirst, comFirst)
+                humMove();
                 compMove();
+                //after switch
                 round++;
             }
         } catch (Exception e) {
-            getMove();
+            play();
         }
     }
 
+    private void humMove(){
+        moves[lastHumMove] = humanFigure;
+        humanSetMoves.add(lastHumMove);
+        possibleSetMoves.remove(lastHumMove);
+    }
+
     private void compMove() {
-        if(round == 1 && Stream.of(1, 3, 7, 9).collect(Collectors.toSet()).contains(lastHumMove)) {
-            moves[5] = compFigure;
-        }else if(round == 1)
+//        if(round == 1 && Stream.of(1, 3, 7, 9).collect(Collectors.toSet()).contains(lastHumMove)) {
+//            moves[5] = compFigure;
+//        }else if(round == 1)
+
 
     }
 
@@ -318,8 +327,6 @@ public class CrossAndCircle {
             return true;
         } else if (!moves[group[0]].equals(figure)||!moves[group[1]].equals(figure) || !moves[group[2]].equals(figure)
                 && ((figure.equals(humanFigure) || (figure.equals(compFigure))))) {
-            System.out.printf("%3s", "REMOVE!\n");
-            System.out.println(group[0] + " "+group[1]+" " + group[2]);
             winsCombination[row][0] = 0;
         }
         return false;
