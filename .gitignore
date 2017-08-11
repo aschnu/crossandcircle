@@ -8,3 +8,5 @@
 out/production/crossandcircle/CrossAndCircle\.class
 
 crossandcircle\.iml
+/.nb-gradle/
+/build/
